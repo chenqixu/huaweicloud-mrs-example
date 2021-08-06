@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+CLASSPATH=
+for i in lib/*.jar; do CLASSPATH="$CLASSPATH":"$i"; done
+CLASSPATH="$CLASSPATH":"."
+#MAIN_CLASS="com.huawei.presto.JDBCExamplePassword"
+MAIN_CLASS="com.huawei.presto.JDBCExample"
+/opt/hwclient/JDK/jdk1.8.0_242/bin/java -cp ${CLASSPATH} ${MAIN_CLASS} 10.44.36.181:24002,10.44.36.141:24002,10.44.36.171:24002,10.44.36.161:24002,10.44.36.151:24010.44.36.181:24002,10.44.36.141:24002,10.44.36.171:24002,10.44.36.161:24002,10.44.36.151:24002
