@@ -143,7 +143,7 @@ public class JDBCExample {
         }
 
         // 拼接JDBC URL
-        StringBuilder strBuilder = new StringBuilder("jdbc:hive2://").append(zkQuorum).append("/");
+        StringBuilder strBuilder = new StringBuilder("jdbc:hive2://").append(zkQuorum).append("/default");
 
         if ("KERBEROS".equalsIgnoreCase(auth)) {
             strBuilder

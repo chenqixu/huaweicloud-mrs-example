@@ -6,8 +6,8 @@
 
     <groupId>cql-examples</groupId>
     <artifactId>cql-examples</artifactId>
-<!--    <version>1.0</version>-->
-    <version>8.0.2</version>
+    <version>1.0</version>
+    <!--<version>8.0.2</version>-->
 
     <properties>
         <cql.version>1.0</cql.version>
@@ -18,12 +18,18 @@
 
     <dependencies> 
         <dependency>
-<!--            <groupId>com.huawei.streaming</groupId>-->
-            <groupId>com.huawei.mrs</groupId>
-            <artifactId>streaming-cql</artifactId>
-<!--            <version>${cql.version}</version>-->
-            <version>${mrs.version}</version>
-        </dependency>       
+            <groupId>com.huawei.streaming</groupId>
+            <!--<groupId>com.huawei.mrs</groupId>-->
+            <!--<artifactId>streaming-cql</artifactId>-->
+            <artifactId>cql</artifactId>
+            <version>${cql.version}</version>
+            <!--<version>${mrs.version}</version>-->
+        </dependency>
+        <dependency>
+            <groupId>com.huawei.streaming</groupId>
+            <artifactId>streaming-base</artifactId>
+            <version>${cql.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
