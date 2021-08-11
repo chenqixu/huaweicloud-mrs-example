@@ -5,21 +5,12 @@
 package com.huawei.bigdata.hive.example;
 
 import com.huawei.bigdata.security.KerberosUtil;
-
 import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
+import java.io.*;
+import java.sql.*;
 import java.util.Properties;
 
 /**
@@ -111,7 +102,7 @@ public class JDBCExample {
         serviceDiscoveryMode = clientInfo.getProperty("serviceDiscoveryMode");
         principal = clientInfo.getProperty("principal");
         // 设置新建用户的USER_NAME，其中"xxx"指代之前创建的用户名，例如创建的用户为user，则USER_NAME为user
-        USER_NAME = "xxx";
+        USER_NAME = "yz_newland"; // 注意需要换成自身项目使用的用户
 
         if ("KERBEROS".equalsIgnoreCase(auth)) {
             // 设置客户端的keytab和krb5文件路径
@@ -137,10 +128,19 @@ public class JDBCExample {
 
         // 定义HQL，HQL为单条语句，不能包含“;”
         String[] sqls = {
-            "CREATE TABLE IF NOT EXISTS employees_info(id INT,name STRING)",
-            "SELECT COUNT(*) FROM employees_info",
-            "DROP TABLE employees_info"
+                "CREATE TABLE IF NOT EXISTS employees_info(id INT,name STRING)",
+                "SELECT COUNT(*) FROM employees_info",
+                "DROP TABLE employees_info"
         };
+
+        String[] sql_array = new String[]{};
+        if (args != null && args.length == 1) {
+            // 从文件读取sql
+            sql_array = readSqlFromFile(args[0]);
+        } else {
+            logger.error("请输入需要执行的SQL文件！");
+            System.exit(-1);
+        }
 
         // 拼接JDBC URL
         StringBuilder strBuilder = new StringBuilder("jdbc:hive2://").append(zkQuorum).append("/");
@@ -172,6 +172,7 @@ public class JDBCExample {
                     .append(";auth=none");
         }
         String url = strBuilder.toString();
+        logger.info("URL：{}", url);
 
         // 加载Hive JDBC驱动
         Class.forName(HIVE_DRIVER);
@@ -182,18 +183,24 @@ public class JDBCExample {
             // 如果使用的是普通模式，那么第二个参数需要填写正确的用户名，否则会以匿名用户(anonymous)登录
             connection = DriverManager.getConnection(url, "", "");
 
+            // 执行从文件中获取的sql
+            for (String sql : sql_array) {
+                logger.info("即将执行的SQL：{}", sql);
+                execDDL(connection, sql);
+            }
+
             // 建表
             // 表建完之后，如果要往表中导数据，可以使用LOAD语句将数据导入表中，比如从HDFS上将数据导入表:
             // load data inpath '/tmp/employees.txt' overwrite into table employees_info;
-            execDDL(connection, sqls[0]);
-            logger.info("Create table success!");
-
-            // 查询
-            execDML(connection, sqls[1]);
-
-            // 删表
-            execDDL(connection, sqls[2]);
-            logger.info("Delete table success!");
+//            execDDL(connection, sqls[0]);
+//            logger.info("Create table success!");
+//
+//            // 查询
+//            execDML(connection, sqls[1]);
+//
+//            // 删表
+//            execDDL(connection, sqls[2]);
+//            logger.info("Delete table success!");
         } catch (SQLException e) {
             logger.error("Create connection failed : " + e.getMessage());
         } finally {
@@ -258,5 +265,31 @@ public class JDBCExample {
                 statement.close();
             }
         }
+    }
+
+    /**
+     * 从文件读取sql
+     *
+     * @param fileName
+     * @return
+     * @throws IOException
+     */
+    public static String[] readSqlFromFile(String fileName) throws IOException {
+        // sql从file读取
+        StringBuilder sqlSb;
+        logger.info("FILE：{}", fileName);
+        File file = new File(fileName);
+        if (file.exists()) {
+            sqlSb = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+                String tmp;
+                while ((tmp = br.readLine()) != null) {
+                    sqlSb.append(tmp);
+                }
+            }
+            logger.info("SQL：{}", sqlSb.toString());
+            return sqlSb.toString().split(";");
+        }
+        return new String[]{};
     }
 }

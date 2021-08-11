@@ -4,6 +4,10 @@
 
 package com.huawei.presto;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.*;
 import java.sql.*;
 import java.util.Properties;
 
@@ -13,6 +17,7 @@ import java.util.Properties;
  * @since 2019-12-01
  */
 public class JDBCExample {
+    private final static Logger logger = LoggerFactory.getLogger(JDBCExample.class);
     //    private final static String PATH_TO_HETUSERVER_JKS = JDBCExample.class.getClassLoader()
 //            .getResource("hetuserver.jks")// 修改点，注释掉，生产没有这个配置文件
 //            .getPath();
@@ -25,9 +30,8 @@ public class JDBCExample {
     private final static String PATH_TO_USER_KEYTAB = JDBCExample.class.getClassLoader()
             .getResource("user.keytab")
             .getPath();
-    private static Properties properties = new Properties();
-
     private static final String ZOOKEEPER_SERVER_PRINCIPAL_KEY = "zookeeper.server.principal";
+    private static Properties properties = new Properties();
     private static String ZOOKEEPER_DEFAULT_SERVER_PRINCIPAL = null;
     private static String AUTH_HOST_NAME = null;
 
@@ -61,10 +65,8 @@ public class JDBCExample {
      */
     public static void main(String[] args) {
         Connection connection = null;
-        ResultSet result = null;
-        PreparedStatement statement = null;
-        if (args == null || args.length != 1) {
-            System.err.println("请输入zk_server!");
+        if (args == null || args.length != 2) {
+            System.err.println("请输入zk_server，和要执行的sql文件!");
             System.exit(-1);
         }
         // 192.168.1.130:24002,192.168.1.131:24002,192.168.1.132:24002
@@ -75,39 +77,18 @@ public class JDBCExample {
         try {
             init();
 
-            String sql = "show tables";
+            // 从文件读取sql
+            String[] sql_array = readSqlFromFile(args[1]);
             connection = DriverManager.getConnection(url, properties);
-            statement = connection.prepareStatement(sql.trim());
-            result = statement.executeQuery();
-            ResultSetMetaData resultMetaData = result.getMetaData();
-            Integer colNum = resultMetaData.getColumnCount();
-            for (int j = 1; j <= colNum; j++) {
-                System.out.print(resultMetaData.getColumnLabel(j) + "\t");
+
+            // 执行查询语句
+            for (String sql : sql_array) {
+                logger.info("即将执行的SQL：{}", sql);
+                execDML(connection, sql);
             }
-            System.out.println();
-            while (result.next()) {
-                for (int j = 1; j <= colNum; j++) {
-                    System.out.print(result.getString(j) + "\t");
-                }
-                System.out.println();
-            }
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (SQLException | ClassNotFoundException | IOException e) {
             e.printStackTrace();
         } finally {
-            if (result != null) {
-                try {
-                    result.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
-            if (statement != null) {
-                try {
-                    statement.close();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            }
             if (connection != null) {
                 try {
                     connection.close();
@@ -117,7 +98,6 @@ public class JDBCExample {
             }
         }
     }
-
 
     /**
      * Get user realm process
@@ -135,5 +115,87 @@ public class JDBCExample {
             }
         }
         return AUTH_HOST_NAME;
+    }
+
+    /**
+     * Execute DDL Task process
+     */
+    public static void execDDL(Connection connection, String sql) throws SQLException {
+        PreparedStatement statement = null;
+        try {
+            statement = connection.prepareStatement(sql);
+            statement.execute();
+        } finally {
+            if (null != statement) {
+                statement.close();
+            }
+        }
+    }
+
+    /**
+     * Execute DML Task process
+     */
+    public static void execDML(Connection connection, String sql) throws SQLException {
+        PreparedStatement statement = null;
+        ResultSet resultSet = null;
+        ResultSetMetaData resultMetaData = null;
+
+        try {
+            // 执行HQL
+            statement = connection.prepareStatement(sql);
+            resultSet = statement.executeQuery();
+
+            // 输出查询的列名到控制台
+            resultMetaData = resultSet.getMetaData();
+            int columnCount = resultMetaData.getColumnCount();
+            String resultMsg = "";
+            for (int i = 1; i <= columnCount; i++) {
+                resultMsg += resultMetaData.getColumnLabel(i) + '\t';
+            }
+            logger.info(resultMsg);
+
+            // 输出查询结果到控制台
+            while (resultSet.next()) {
+                String result = "";
+                for (int i = 1; i <= columnCount; i++) {
+                    result += resultSet.getString(i) + '\t';
+                }
+                logger.info(result);
+            }
+        } finally {
+            if (null != resultSet) {
+                resultSet.close();
+            }
+
+            if (null != statement) {
+                statement.close();
+            }
+        }
+    }
+
+    /**
+     * 从文件读取sql
+     *
+     * @param fileName
+     * @return
+     * @throws IOException
+     */
+    public static String[] readSqlFromFile(String fileName) throws IOException {
+        // sql从file读取
+        StringBuilder sqlSb;
+        logger.info("FILE：{}", fileName);
+        File file = new File(fileName);
+        if (file.exists()) {
+            sqlSb = new StringBuilder();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+                String tmp;
+                while ((tmp = br.readLine()) != null) {
+                    sqlSb.append(tmp);
+                }
+            }
+            logger.info("SQL：{}", sqlSb.toString());
+            return sqlSb.toString().split(";");
+        }
+        return new String[]{};
     }
 }

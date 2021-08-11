@@ -86,7 +86,7 @@ public class JDBCExamplePreLogin {
         serviceDiscoveryMode = clientInfo.getProperty("serviceDiscoveryMode");
         principal = clientInfo.getProperty("principal");
         // 设置新建用户的USER_NAME，其中"xxx"指代之前创建的用户名，例如创建的用户为user，则USER_NAME为user
-        USER_NAME = "xxx";
+        USER_NAME = "yz_newland"; // 注意需要换成自身项目使用的用户
 
         if ("KERBEROS".equalsIgnoreCase(auth)) {
             // 设置客户端的keytab和krb5文件路径
