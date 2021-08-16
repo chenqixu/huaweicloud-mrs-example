@@ -8,11 +8,18 @@
     <artifactId>hetu-examples-security</artifactId>
     <version>1.0-SNAPSHOT</version>
 
+    <properties>
+        <hadoop.version>3.1.1-hw-ei-302002</hadoop.version>
+        <hive.version>3.1.0-hw-ei-302002</hive.version>
+        <hetu.version>316-hw-ei-302002</hetu.version>
+    </properties>
+
     <dependencies>
+        <!-- hetu -->
         <dependency>
             <groupId>io.prestosql</groupId>
             <artifactId>presto-jdbc</artifactId>
-            <version>316-hw-ei-302002</version>
+            <version>${hetu.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>zookeeper</artifactId>
@@ -44,7 +51,35 @@
                 </exclusion>
             </exclusions>
         </dependency>
+
+        <!-- hive -->
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-auth</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-jdbc</artifactId>
+            <version>${hive.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-common</artifactId>
+            <version>${hive.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hive</groupId>
+            <artifactId>hive-shims</artifactId>
+            <version>${hive.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>${hadoop.version}</version>
+        </dependency>
     </dependencies>
+
     <build>
         <plugins>
             <plugin>
