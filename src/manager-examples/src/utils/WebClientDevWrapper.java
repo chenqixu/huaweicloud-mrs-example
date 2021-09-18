@@ -4,8 +4,11 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
@@ -86,16 +89,23 @@ public class WebClientDevWrapper {
         } catch (KeyManagementException e) {
             e.printStackTrace();
         }
-        SSLSocketFactory sslSocketFactory = null;
-        if ((userTLSVersion == null) || (userTLSVersion.isEmpty()) || (userTLSVersion.equals(DEFAULT_SSL_VERSION))) {
-            sslSocketFactory = new SSLSocketFactory(sslContext, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
-        } else {
-            sslSocketFactory = new BigdataSslSocketFactory(sslContext, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER,
-                    userTLSVersion);
-        }
-        ClientConnectionManager ccm = base.getConnectionManager();
-        SchemeRegistry sr = ccm.getSchemeRegistry();
-        sr.register(new Scheme(PROTOCOL_NAME, PORT, sslSocketFactory));
-        return new DefaultHttpClient(ccm, base.getParams());
+
+        //----------------------------
+        SSLConnectionSocketFactory sslsf = new SSLConnectionSocketFactory(sslContext);
+        CloseableHttpClient httpclient = HttpClients.custom().setSSLSocketFactory(sslsf).build();
+        return httpclient;
+        //----------------------------
+
+//        SSLSocketFactory sslSocketFactory = null;
+//        if ((userTLSVersion == null) || (userTLSVersion.isEmpty()) || (userTLSVersion.equals(DEFAULT_SSL_VERSION))) {
+//            sslSocketFactory = new SSLSocketFactory(sslContext, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+//        } else {
+//            sslSocketFactory = new BigdataSslSocketFactory(sslContext, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER,
+//                    userTLSVersion);
+//        }
+//        ClientConnectionManager ccm = base.getConnectionManager();
+//        SchemeRegistry sr = ccm.getSchemeRegistry();
+//        sr.register(new Scheme(PROTOCOL_NAME, PORT, sslSocketFactory));
+//        return new DefaultHttpClient(ccm, base.getParams());
     }
 }

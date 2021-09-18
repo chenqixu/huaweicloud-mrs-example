@@ -8,6 +8,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocket;
 import java.io.IOException;
 import java.net.Socket;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * 使用户设置的TLS版本生效 继承SSLSocketFactory
@@ -28,6 +30,23 @@ public class BigdataSslSocketFactory extends SSLSocketFactory {
     @Override
     public Socket createSocket(HttpParams params) throws IOException {
         Socket result = super.createSocket(params);
+        System.out.println("============" + params);
+        System.out.println("============" + result);
+        System.out.println("============" + result.getPort());
+//        try {
+//            SSLContext ctx= SSLContext.getInstance("TLSv1.2");
+//            ctx.init(null,null,null);
+//        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+//            e.printStackTrace();
+//        }
+
+        // 强转不行，可能需要这样转换
+//        SSLSocketFactory sslSf = SSLSocketFactory.getSocketFactory();
+//        SSLSocket sslSocket = (SSLSocket) sslSf.createSocket(result, "10.1.2.212",
+//            result.getPort(), false);
+//        sslSocket.setEnabledProtocols(enabelPro);
+//        return sslSocket;
+
         ((SSLSocket) result).setEnabledProtocols(enabelPro);
         return result;
     }

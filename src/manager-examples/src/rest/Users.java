@@ -2,35 +2,23 @@ package rest;
 
 import basicAuth.BasicAuthAccess;
 import basicAuth.HttpManager;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.HttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.PropertyResourceBundle;
 import java.util.ResourceBundle;
 
 /**
- * ExportUsers
+ * 获取用户列表
  *
- * @author huawei
- * @version [V100R002C30, 2014-09-09]
- * @since [OM 1.0]
+ * @author chenqixu
  */
-public class ExportUsers {
-    private static final Logger LOG = LoggerFactory.getLogger(ExportUsers.class);
+public class Users {
+    private static final Logger LOG = LoggerFactory.getLogger(Users.class);
 
-    private static final String EXPORT_URL = "api/v2/permission/users/operations/export?filter=&format=txt";
-
-    private static final String DOWNLOAD_URL = "api/v2/permission/users/download?file_name=";
+    private static final String URL = "api/v2/permission/users";
 
     /**
      * 程序运行入口
@@ -40,7 +28,7 @@ public class ExportUsers {
     public static void main(String[] args) {
         LOG.info("Enter main.");
         // 文件UserInfo.properties的路径
-        String userFilePath = System.getProperty("user.dir")+"/src/manager-examples/conf/UserInfo.properties";
+        String userFilePath = System.getProperty("user.dir") + "/src/manager-examples/conf/UserInfo.properties";
 
         InputStream userInfo = null;
         ResourceBundle resourceBundle = null;
@@ -76,7 +64,7 @@ public class ExportUsers {
             }
 
             // userTLSVersion是必备的参数，是处理jdk1.6服务端连接jdk1.8服务端时的重要参数，如果用户使用的是jdk1.8该参数赋值为空字符串即可
-            String userTLSVersion = "";
+            String userTLSVersion = "TLSv1.2";// TLSv1.1
 
             // 调用firstAccess接口完成登录认证
             LOG.info("Begin to get httpclient and first access.");
@@ -85,19 +73,13 @@ public class ExportUsers {
 
             LOG.info("Start to access REST API.");
 
-            // 访问Manager接口完成导出用户
-            String operationName = "ExportUsers";
-            String exportOperationUrl = webUrl + EXPORT_URL;
+            // 查询用户列表
+            String operationName = "";
+            String exportOperationUrl = webUrl + URL;
             HttpManager httpManager = new HttpManager();
-            // 调用导出接口
-            String responseLineContent = httpManager.sendHttpPostRequestWithString(httpClient, exportOperationUrl,
-                    StringUtils.EMPTY, operationName);
-            // 调用下载接口
-            operationName = "DownloadUsers";
-            JSONObject jsonObj = JSON.parseObject(responseLineContent);
-            String downloadOperationUrl = webUrl + DOWNLOAD_URL + jsonObj.getString("fileName");
-            httpManager.sendHttpGetRequest(httpClient, downloadOperationUrl, operationName);
-
+            // 调用接口
+            String responseLineContent = httpManager.sendHttpGetRequest(httpClient, exportOperationUrl, operationName);
+            LOG.info("responseLineContent：{}", responseLineContent);
             LOG.info("Exit main.");
 
         } catch (FileNotFoundException e) {

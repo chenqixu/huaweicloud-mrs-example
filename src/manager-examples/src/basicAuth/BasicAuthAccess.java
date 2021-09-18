@@ -194,7 +194,7 @@ public class BasicAuthAccess {
             LOG.error("First access server failed because of FirstTimeAccessException.");
             throw new FirstTimeAccessException("ClientProtocolException");
         } catch (IOException e) {
-            LOG.error("First access server failed because of ClientProtocolException.");
+            LOG.error("First access server failed because of ClientProtocolException.", e);
             throw new FirstTimeAccessException("IOException");
         } catch (IllegalStateException e) {
             LOG.error("First access server failed because of IllegalStateException.");
