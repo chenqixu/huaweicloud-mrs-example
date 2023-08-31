@@ -90,7 +90,7 @@ public class JDBCExamplePreLogin {
 
         if ("KERBEROS".equalsIgnoreCase(auth)) {
             // 设置客户端的keytab和krb5文件路径
-            USER_KEYTAB_FILE = userdir + "user.keytab";
+            USER_KEYTAB_FILE = userdir + USER_NAME + ".keytab";
             KRB5_FILE = userdir + "krb5.conf";
             System.setProperty("java.security.krb5.conf", KRB5_FILE);
             LoginUtil.setJaasConf(ZOOKEEPER_DEFAULT_LOGIN_CONTEXT_NAME, USER_NAME, USER_KEYTAB_FILE);
